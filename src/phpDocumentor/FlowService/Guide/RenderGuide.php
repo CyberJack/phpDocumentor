@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @link https://phpdoc.org
  */
 
-namespace phpDocumentor\Transformer\Writer;
+namespace phpDocumentor\FlowService\Guide;
 
 use League\Tactician\CommandBus;
 use phpDocumentor\Descriptor\GuideSetDescriptor;
@@ -20,6 +20,7 @@ use phpDocumentor\Descriptor\VersionDescriptor;
 use phpDocumentor\Dsn;
 use phpDocumentor\Guides\Configuration;
 use phpDocumentor\Guides\Formats\Format;
+use phpDocumentor\FlowService\FlowService;
 use phpDocumentor\Guides\RenderCommand;
 use phpDocumentor\Guides\Renderer;
 use phpDocumentor\Transformer\Transformation;
@@ -31,7 +32,7 @@ use function sprintf;
 /**
  * @experimental Do not use; this stage is meant as a sandbox / playground to experiment with generating guides.
  */
-final class RenderGuide extends WriterAbstract implements ProjectDescriptor\WithCustomSettings
+final class RenderGuide implements FlowService, ProjectDescriptor\WithCustomSettings
 {
     public const FEATURE_FLAG = 'guides.enabled';
 
@@ -60,27 +61,13 @@ final class RenderGuide extends WriterAbstract implements ProjectDescriptor\With
         $this->outputFormats = $outputFormats;
     }
 
-    public function transform(ProjectDescriptor $project, Transformation $transformation): void
+    public function operate(DocumentationSetDescriptor $documentationSet): void
     {
-        // Feature flag: Guides are disabled by default since this is an experimental feature
-        if (!($project->getSettings()->getCustom()[self::FEATURE_FLAG])) {
-            return;
-        }
-
         $this->logger->warning(
             'Generating guides is experimental, no BC guarantees are given, use at your own risk'
         );
 
-        /** @var VersionDescriptor $version */
-        foreach ($project->getVersions() as $version) {
-            foreach ($version->getDocumentationSets() as $documentationSet) {
-                if (!$documentationSet instanceof GuideSetDescriptor) {
-                    continue;
-                }
-
-                $this->renderDocumentationSet($documentationSet, $project, $transformation);
-            }
-        }
+        $this->renderDocumentationSet($documentationSet, $project, $transformation);
     }
 
     public function getDefaultSettings(): array
@@ -105,11 +92,7 @@ final class RenderGuide extends WriterAbstract implements ProjectDescriptor\With
         $configuration->setOutputFolder($documentationSet->getOutput());
 
         $this->commandBus->handle(
-            new RenderCommand(
-                $documentationSet,
-                $configuration,
-                $transformation->getTransformer()->destination()
-            )
+            new RenderCommand()
         );
 
         $this->completedRenderingSetMessage($stopwatch, $dsn);
