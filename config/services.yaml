@@ -112,6 +112,10 @@ services:
       class: phpDocumentor\FlowService\ServiceProvider
       arguments: [!tagged_iterator { tag: 'phpdoc.flow.parser', index_by: 'documentation_type' }]
 
+    phpdoc.flow.transformer_provider:
+      class: phpDocumentor\FlowService\ServiceProvider
+      arguments: [!tagged_iterator { tag: 'phpdoc.flow.transformer', index_by: 'documentation_type' }]
+
     phpDocumentor\FlowService\Api\Parser:
       tags:
         - { name: 'phpdoc.flow.parser', documentation_type: 'phpDocumentor\Descriptor\ApiSetDescriptor' }
@@ -236,7 +240,7 @@ services:
             - { method: offsetSet, arguments: ['sourcecode', '@phpDocumentor\Transformer\Writer\Sourcecode']}
             - { method: offsetSet, arguments: ['Graph', '@phpDocumentor\Transformer\Writer\Graph']}
             - { method: offsetSet, arguments: ['twig', '@phpDocumentor\Transformer\Writer\Twig']}
-            - { method: offsetSet, arguments: ['RenderGuide', '@phpDocumentor\Transformer\Writer\RenderGuide']}
+#            - { method: offsetSet, arguments: ['RenderGuide', '@phpDocumentor\Transformer\Writer\RenderGuide']}
 
     phpDocumentor\Transformer\Writer\Graph\PlantumlRenderer:
       arguments:
@@ -246,10 +250,6 @@ services:
     ## Guides - EXPERIMENTAL ##########################################################
     ###################################################################################
     Doctrine\Common\EventManager: ~
-
-    phpDocumentor\Transformer\Writer\RenderGuide:
-      arguments:
-        $outputFormats: !tagged_iterator phpdoc.guides.format
 
     phpDocumentor\FlowService\Guide\Parser:
       arguments:
