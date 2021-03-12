@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace phpDocumentor\Pipeline\Stage\Parser;
 
 use League\Tactician\CommandBus;
+use phpDocumentor\FileSystem\FlySystemFactory;
 use phpDocumentor\Descriptor\GuideSetDescriptor;
 use phpDocumentor\Guides\Configuration;
 use phpDocumentor\Guides\Formats\Format;
 use phpDocumentor\Guides\RestructuredText\ParseDirectoryCommand;
-use phpDocumentor\Parser\FlySystemFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
