@@ -14,21 +14,16 @@ declare(strict_types=1);
 namespace phpDocumentor\FlowService\Guide;
 
 use League\Tactician\CommandBus;
-use phpDocumentor\Descriptor\GuideSetDescriptor;
+use phpDocumentor\Descriptor\DocumentationSetDescriptor;
 use phpDocumentor\Descriptor\ProjectDescriptor;
-use phpDocumentor\Descriptor\VersionDescriptor;
 use phpDocumentor\Dsn;
+use phpDocumentor\FileSystem\FileSystemFactory;
 use phpDocumentor\FlowService\Transformer;
-use phpDocumentor\Guides\Configuration;
-use phpDocumentor\Guides\Formats\Format;
-use phpDocumentor\FlowService\FlowService;
 use phpDocumentor\Guides\RenderCommand;
 use phpDocumentor\Guides\Renderer;
 use phpDocumentor\Transformer\Template;
-use phpDocumentor\Transformer\Transformation;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
-
 use function sprintf;
 
 /**
@@ -47,20 +42,15 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
     /** @var Renderer */
     private $renderer;
 
-    /** @var iterable<Format> */
-    private $outputFormats;
+    /** @var FileSystemFactory */
+    private $fileSystems;
 
-    /** @param iterable<Format> $outputFormats */
-    public function __construct(
-        Renderer $renderer,
-        LoggerInterface $logger,
-        CommandBus $commandBus,
-        iterable $outputFormats
-    ) {
+    public function __construct(Renderer $renderer, LoggerInterface $logger, CommandBus $commandBus, FileSystemFactory $fileSystems)
+    {
         $this->logger = $logger;
         $this->commandBus = $commandBus;
         $this->renderer = $renderer;
-        $this->outputFormats = $outputFormats;
+        $this->fileSystems = $fileSystems;
     }
 
     public function execute(ProjectDescriptor $project, DocumentationSetDescriptor $documentationSet, Template $template): void
@@ -75,13 +65,18 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
         $this->renderer->initialize($project, $documentationSet, $template);
 
         $this->commandBus->handle(
-            new RenderCommand()
+            new RenderCommand($this->fileSystems->createDestination($documentationSet))
         );
 
         $this->completedRenderingSetMessage($stopwatch, $dsn);
     }
 
-    private function startRenderingSetMessage(Dsn $dsn): Stopwatch
+    public function getDefaultSettings() : array
+    {
+        return [self::FEATURE_FLAG => false];
+    }
+
+    private function startRenderingSetMessage(Dsn $dsn) : Stopwatch
     {
         $stopwatch = new Stopwatch();
         $stopwatch->start('guide');
@@ -90,7 +85,7 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
         return $stopwatch;
     }
 
-    private function completedRenderingSetMessage(Stopwatch $stopwatch, Dsn $dsn): void
+    private function completedRenderingSetMessage(Stopwatch $stopwatch, Dsn $dsn) : void
     {
         $stopwatchEvent = $stopwatch->stop('guide');
         $this->logger->info(
