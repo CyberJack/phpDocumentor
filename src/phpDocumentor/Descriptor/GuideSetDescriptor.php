@@ -49,7 +49,7 @@ final class GuideSetDescriptor extends DocumentationSetDescriptor
         return $this->documents;
     }
 
-    public function getInputFormat(): string
+    public function getInputFormat() : string
     {
         return $this->inputFormat;
     }
