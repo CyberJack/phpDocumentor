@@ -70,7 +70,7 @@ final class Parser implements ParserInterface
         $configuration = new Configuration($inputFormat, $this->outputFormats);
         $configuration->setOutputFolder($documentationSet->getOutput());
 
-        $this->commandBus->handle(new ParseDirectoryCommand($configuration, $origin, (string) $directory));
+        $this->commandBus->handle(new ParseDirectoryCommand($documentationSet, $configuration, $origin, (string) $directory));
     }
 
     /**

@@ -13,12 +13,17 @@ declare(strict_types=1);
 
 namespace phpDocumentor\FlowService\Guide;
 
+use InvalidArgumentException;
 use League\Tactician\CommandBus;
 use phpDocumentor\Descriptor\DocumentationSetDescriptor;
+use phpDocumentor\Descriptor\GuideSetDescriptor;
 use phpDocumentor\Descriptor\ProjectDescriptor;
 use phpDocumentor\Dsn;
 use phpDocumentor\FileSystem\FileSystemFactory;
+use phpDocumentor\FileSystem\FlySystemFactory;
 use phpDocumentor\FlowService\Transformer;
+use phpDocumentor\Guides\Configuration;
+use phpDocumentor\Guides\Formats\Format;
 use phpDocumentor\Guides\RenderCommand;
 use phpDocumentor\Guides\Renderer;
 use phpDocumentor\Transformer\Template;
@@ -42,19 +47,35 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
     /** @var Renderer */
     private $renderer;
 
+    /** @var iterable<Format> */
+    private $outputFormats;
+
     /** @var FileSystemFactory */
     private $fileSystems;
 
-    public function __construct(Renderer $renderer, LoggerInterface $logger, CommandBus $commandBus, FileSystemFactory $fileSystems)
-    {
+    /**
+     * @param iterable<Format> $outputFormats
+     */
+    public function __construct(
+        Renderer $renderer,
+        LoggerInterface $logger,
+        CommandBus $commandBus,
+        FileSystemFactory $fileSystems,
+        iterable $outputFormats
+    ) {
         $this->logger = $logger;
         $this->commandBus = $commandBus;
         $this->renderer = $renderer;
+        $this->outputFormats = $outputFormats;
         $this->fileSystems = $fileSystems;
     }
 
     public function execute(ProjectDescriptor $project, DocumentationSetDescriptor $documentationSet, Template $template) : void
     {
+        if (!$documentationSet instanceof GuideSetDescriptor) {
+            throw new InvalidArgumentException('Invalid documentation set');
+        }
+
         $this->logger->warning(
             'Generating guides is experimental, no BC guarantees are given, use at your own risk'
         );
@@ -64,8 +85,14 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
 
         $this->renderer->initialize($project, $documentationSet, $template);
 
+        $inputFormat = $documentationSet->getInputFormat();
+
+        $configuration = new Configuration($inputFormat, $this->outputFormats);
+        $configuration->setOutputFolder($documentationSet->getOutput());
+
+
         $this->commandBus->handle(
-            new RenderCommand($this->fileSystems->createDestination($documentationSet))
+            new RenderCommand($documentationSet, $configuration, $this->fileSystems->createDestination($documentationSet))
         );
 
         $this->completedRenderingSetMessage($stopwatch, $dsn);
