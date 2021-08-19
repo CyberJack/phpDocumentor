@@ -22,8 +22,6 @@ use phpDocumentor\Transformer\Writer\Twig\EnvironmentFactory;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-use function count;
-
 class Renderer
 {
     /** @var EnvironmentFactory */

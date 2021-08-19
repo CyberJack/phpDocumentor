@@ -20,7 +20,6 @@ use phpDocumentor\Descriptor\GuideSetDescriptor;
 use phpDocumentor\Descriptor\ProjectDescriptor;
 use phpDocumentor\Dsn;
 use phpDocumentor\FileSystem\FileSystemFactory;
-use phpDocumentor\FileSystem\FlySystemFactory;
 use phpDocumentor\FlowService\Transformer;
 use phpDocumentor\Guides\Configuration;
 use phpDocumentor\Guides\Formats\Format;
@@ -29,6 +28,7 @@ use phpDocumentor\Guides\Renderer;
 use phpDocumentor\Transformer\Template;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
+
 use function sprintf;
 
 /**
@@ -70,7 +70,7 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
         $this->fileSystems = $fileSystems;
     }
 
-    public function execute(ProjectDescriptor $project, DocumentationSetDescriptor $documentationSet, Template $template) : void
+    public function execute(ProjectDescriptor $project, DocumentationSetDescriptor $documentationSet, Template $template): void
     {
         if (!$documentationSet instanceof GuideSetDescriptor) {
             throw new InvalidArgumentException('Invalid documentation set');
@@ -90,7 +90,6 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
         $configuration = new Configuration($inputFormat, $this->outputFormats);
         $configuration->setOutputFolder($documentationSet->getOutput());
 
-
         $this->commandBus->handle(
             new RenderCommand($documentationSet, $configuration, $this->fileSystems->createDestination($documentationSet))
         );
@@ -98,12 +97,12 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
         $this->completedRenderingSetMessage($stopwatch, $dsn);
     }
 
-    public function getDefaultSettings() : array
+    public function getDefaultSettings(): array
     {
         return [self::FEATURE_FLAG => false];
     }
 
-    private function startRenderingSetMessage(Dsn $dsn) : Stopwatch
+    private function startRenderingSetMessage(Dsn $dsn): Stopwatch
     {
         $stopwatch = new Stopwatch();
         $stopwatch->start('guide');
@@ -112,7 +111,7 @@ final class RenderGuide implements Transformer, ProjectDescriptor\WithCustomSett
         return $stopwatch;
     }
 
-    private function completedRenderingSetMessage(Stopwatch $stopwatch, Dsn $dsn) : void
+    private function completedRenderingSetMessage(Stopwatch $stopwatch, Dsn $dsn): void
     {
         $stopwatchEvent = $stopwatch->stop('guide');
         $this->logger->info(

@@ -13,9 +13,6 @@ declare(strict_types=1);
 
 namespace phpDocumentor\Compiler\Pass;
 
-use phpDocumentor\Descriptor\Collection;
-use phpDocumentor\Descriptor\FileDescriptor;
-use phpDocumentor\Descriptor\ProjectDescriptor;
 use phpDocumentor\Faker\Faker;
 use PHPUnit\Framework\TestCase;
 
