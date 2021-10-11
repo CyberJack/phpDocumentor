@@ -56,7 +56,7 @@ class Parser implements ParserInterface
         $this->directives = $directives;
         $this->references = $references;
         $this->eventManager = $eventManager;
-
+        dd($directives);
         $this->initDirectives($directives);
         $this->initReferences($references);
     }
